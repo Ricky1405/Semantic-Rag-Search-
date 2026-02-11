@@ -1,135 +1,214 @@
-Local-Embedding RAG System
+# 🧠 Local-Embedding RAG System
 
-A high-performance Retrieval-Augmented Generation (RAG) application designed for privacy-centric document intelligence.
-This system performs local vector embedding to eliminate API costs during indexing and uses GitHub Models (GPT-4o-mini) for accurate, cost-efficient natural language generation.
+A privacy-first, production-grade Retrieval-Augmented Generation (RAG) system built using local embeddings, a persistent vector database, and GitHub Models (Azure Inference) for grounded answer generation.
 
-✨ Key Features
+This project demonstrates how to build a cost-efficient, scalable, and offline-friendly RAG pipeline without relying on paid embedding APIs.
 
-🔐 100% Local Embeddings – No sensitive data leaves your machine during vectorization
+---
 
-⚡ Low-Latency Retrieval – Optimized chunking and cosine similarity search
+## 🚀 Features
 
-💸 Cost-Efficient – Zero embedding API cost, lightweight LLM for generation
+- 📚 Retrieval-Augmented Generation (RAG)
+- 🔎 Semantic search using vector similarity
+- 🧠 100% local embeddings (SentenceTransformers – no OpenAI embedding cost)
+- 🗄 Persistent vector storage using ChromaDB
+- 🌐 Web page ingestion via `urls.txt`
+- 📄 Local document ingestion (.txt files)
+- 🧩 Smart chunking with overlap
+- ♻️ Deterministic duplicate-safe indexing (SHA-256 hashing)
+- 🎯 Similarity threshold gating (reduces hallucinations)
+- 📌 Source attribution for answers
+- 🖥 Multiple UI options (CLI / Tkinter / Streamlit)
 
-🧠 Hallucination Control – Confidence gating with strict prompt grounding
+---
 
-♻️ Incremental Indexing – Atomic updates with deterministic chunk hashing
+## 🏗 System Architecture
 
-🏗️ System Architecture
+### 1️⃣ Data Ingestion Layer
+- Local `.txt` file loader
+- Web scraping (Requests + BeautifulSoup4)
+- HTML cleaning (removes `<script>`, `<style>`, `<noscript>`)
+- URL retry logic
 
-The application follows a modular, scalable pipeline optimized for performance and reliability.
+### 2️⃣ Processing & Embedding Layer
+- Chunk size: **200**
+- Overlap: **50**
+- Embedding model: **all-MiniLM-L6-v2**
+- Framework: **PyTorch (CPU compatible)**
 
-1. Data Ingestion Layer
+### 3️⃣ Vector Storage Layer
+- **ChromaDB (Persistent)**
+- Cosine similarity search
+- On-disk storage
+- Incremental indexing support
 
-Text Loader
+### 4️⃣ Retrieval & Generation Layer
+- Top-K semantic retrieval
+- Similarity threshold: **0.40**
+- Context-only prompting
+- LLM: **GPT-4o-mini (GitHub Models via Azure Inference SDK)**
 
-Parses local .txt files
+---
 
-Automatic encoding detection
+## 📁 Project Structure
 
-Web Scraper
+rag_app/
+├── app.py
+├── ui.py
+├── streamlit_app.py
+├── requirements.txt
+├── chroma_db/
+├── documents/
+│ ├── urls.txt
+│ └── *.txt
+└── .env
 
-Idempotent scraper using BeautifulSoup4
 
-Removes boilerplate (<script>, <style>, etc.)
+---
 
-Retry logic with exponential backoff
+## ⚙️ Prerequisites
 
-2. Processing & Embedding Layer
+- Python 3.10+
+- GitHub account with GitHub Models access
+- Internet (for URL ingestion only)
 
-Overlapping Chunking
+---
 
-Sliding window strategy
+## 🔐 Environment Setup
 
-Chunk Size: 200
+Create a `.env` file:
 
-Overlap: 50
-
-Local Inference
-
-Model: all-MiniLM-L6-v2
-
-Framework: PyTorch
-
-Runs entirely on CPU/GPU locally
-
-3. Vector Storage Layer
-
-ChromaDB
-
-Persistent, serverless vector database
-
-Atomic Indexing
-
-SHA-256 hashing for deterministic chunk_id
-
-Prevents duplicates
-
-Enables efficient re-indexing
-
-4. Retrieval & Generation
-
-Semantic Search
-
-Cosine similarity
-
-Top-K relevant chunks retrieval
-
-Confidence Gate
-
-Similarity threshold: 0.40
-
-Prevents low-relevance hallucinations
-
-Augmented Synthesis
-
-Strict instruction-based prompting
-
-Uses gpt-4o-mini for grounded responses
-
-🛠️ Tech Stack
-Component	Technology
-LLM	GPT-4o-mini (GitHub Models via Azure AI Inference SDK)
-Embeddings	all-MiniLM-L6-v2 (Local, PyTorch)
-Vector DB	ChromaDB (Persistent)
-Web Scraping	BeautifulSoup4, Requests
-Data Handling	Pandas
-Runtime	Python 3.10+
-🚀 Installation & Setup
-1. Clone Repository & Create Environment
-git clone <your-repo-link>
-cd local-rag-app
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-
-2. Install Dependencies
-pip install chromadb sentence-transformers azure-ai-inference \
-            python-dotenv beautifulsoup4 requests torch
-
-3. API Configuration
-
-Create a .env file in the root directory:
-
-# Get your token from https://github.com/marketplace/models
 GITHUB_TOKEN=your_github_personal_access_token
 
-📖 Usage Guide
-Step 1: Prepare Knowledge Base
 
-Place .txt files in the documents/ directory
+Get token from:
+https://github.com/marketplace/models
 
-Add URLs (one per line) to:
+---
+
+## 📦 Installation
+
+### 1️⃣ Create Virtual Environment
+```bash
+python -m venv venv
+source venv/bin/activate        # Linux/macOS
+venv\Scripts\activate           # Windows
+
+pip install -r requirements.txt
+
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+2️⃣ Install Dependencies
+pip install -r requirements.txt
+
+3️⃣ Install CPU PyTorch
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+📄 Adding Documents
+
+Place .txt files inside:
+
+documents/
+
+
+Add URLs inside:
 
 documents/urls.txt
 
-Step 2: Indexing (Vectorization)
 
-Generate local embeddings and populate ChromaDB:
+Rules:
 
+One URL per line
+
+Blank lines allowed
+
+Lines starting with # ignored
+
+🧱 Index Data
 python app.py --index
 
-Step 3: Interactive Q&A
 
-Start the RAG-powered chat interface:
+This:
 
+Loads documents
+
+Chunks text
+
+Generates embeddings
+
+Stores vectors in ChromaDB
+
+❓ Ask Questions
+CLI
 python app.py
+
+Tkinter UI
+python ui.py
+
+Streamlit UI
+streamlit run streamlit_app.py
+
+🧠 Hallucination Control
+
+Similarity threshold filtering
+
+Strict context-only prompting
+
+If insufficient context:
+
+"I don't have enough information to answer that."
+
+📊 Performance Characteristics
+
+⚡ Fast local embedding generation
+
+💰 Zero embedding API cost
+
+📈 Scalable retrieval via persistent vector DB
+
+🔒 No document data sent externally during indexing
+
+🛠 Tech Stack
+
+Python 3.10+
+
+ChromaDB
+
+SentenceTransformers
+
+PyTorch
+
+GitHub Models (Azure Inference)
+
+BeautifulSoup4
+
+Requests
+
+Tkinter
+
+Streamlit
+
+
+---
+
+# ✅ Now Finish the Rebase
+
+Run:
+
+```bash
+git add rag_app/README.md
+git rebase --continue
+git push origin dev
+
+
+This keeps:
+
+Your professional architecture description
+
+Your UI updates
+
+Your earlier structured explanations
+
+Clean formatting
+
+No conflict markers
