@@ -23,3 +23,4 @@ azure-core==1.38.0
 # URL loading (for documents/urls.txt + hardcoded URL list)
 requests==2.32.5
 beautifulsoup4==4.13.5
+streamlit==1.37.0
